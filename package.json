@@ -12,6 +12,7 @@
   "dependencies": {
     "express": "^4.16.3",
     "lodash": "^4.17.5",
+    "mongodb": "^2.2.33",
     "nodemailer": "^4.6.4"
   }
 }
