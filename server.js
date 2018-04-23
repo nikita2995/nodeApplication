@@ -1,9 +1,11 @@
 //"use strict"
 
 const _                       = require('lodash'),
+      child_process           = require('child_process'),
       express                 = require('express'),
       MongoClient             = require('mongodb').MongoClient,
-      nodeMailer              = require('nodeMailer'),
+      nodemailer              = require('nodemailer'),
+      config                  = require('./config'),
       routers                 = require('./routers'),
       util                    = require('./utils'),
       APPCONST                = util.appConst;
@@ -11,32 +13,31 @@ const _                       = require('lodash'),
 const app                     = express();
 
 routers(app);
-
 // Connect to the db
-MongoClient.connect("mongodb://nikita:root@ds014388.mlab.com:14388/flipkart", function (err, db) {
+// MongoClient.connect("mongodb://nikita:root@ds014388.mlab.com:14388/flipkart", function (err, db) {
    
-console.log(db);
-  db.collection('temporary_user', function (err, collection) {
+// console.log(db);
+//   db.collection('temporary_user', function (err, collection) {
         
-    // collection.insert({ id: 1, firstName: 'Steve', lastName: 'Jobs' });
-    // collection.insert({ id: 2, firstName: 'Bill', lastName: 'Gates' });
-    // collection.insert({ id: 3, firstName: 'James', lastName: 'Bond' });
+//     // collection.insert({ id: 1, firstName: 'Steve', lastName: 'Jobs' });
+//     // collection.insert({ id: 2, firstName: 'Bill', lastName: 'Gates' });
+//     // collection.insert({ id: 3, firstName: 'James', lastName: 'Bond' });
     
     
 
-    // db.collection('Persons').count(function (err, count) {
-    //     if (err) throw err;
+//     // db.collection('Persons').count(function (err, count) {
+//     //     if (err) throw err;
         
-    //     console.log('Total Rows: ' + count);
-    // });
-});
+//     //     console.log('Total Rows: ' + count);
+//     // });
+// });
                 
-});
+// });
 
 
 app.get('/sendMail', (req, res) => {
 
-  let transporter = nodeMailer.createTransport({
+  let transporter = nodemailer.createTransport({
     service:'Gmail',
     auth: {
       user: 'khandelwalnikita02@gmail.com',
@@ -58,7 +59,7 @@ app.get('/sendMail', (req, res) => {
     }
     console.log('Message sent: %s', info.messageId);
     // Preview only available when sending through an Ethereal account
-    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+    console.log('Preview URL: %s', nodeMailer.getTestMessageUrl(info));
 
     // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
     // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
