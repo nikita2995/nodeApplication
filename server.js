@@ -1,9 +1,9 @@
 //"use strict"
 
 const _                       = require('lodash'),
+      bodyParser              = require('body-parser'),
       child_process           = require('child_process'),
       express                 = require('express'),
-      MongoClient             = require('mongodb').MongoClient,
       nodemailer              = require('nodemailer'),
       config                  = require('./config'),
       routers                 = require('./routers'),
@@ -12,7 +12,20 @@ const _                       = require('lodash'),
 
 const app                     = express();
 
+//Parsing application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({extended: true}));
+
+//Parsing application/json
+app.use(bodyParser.json());
+
 routers(app);
+
+app.post('/sampleGet', (req, res) => {
+
+  console.log('Req Body',req.body);
+  console.log('Req Query',req.query);
+
+});
 // Connect to the db
 // MongoClient.connect("mongodb://nikita:root@ds014388.mlab.com:14388/flipkart", function (err, db) {
    
@@ -39,9 +52,13 @@ app.get('/sendMail', (req, res) => {
 
   let transporter = nodemailer.createTransport({
     service:'Gmail',
+    port: 587,
+    tls:true,
+    secure: false,
+    host: 'smtp.gmail.com',
     auth: {
-      user: 'khandelwalnikita02@gmail.com',
-      pass: 'nikita@gmail'
+      user: 'nikitakhandelwal2995@gmail.com',
+      pass: 'N!k!ta@2995'
     }
   });
 

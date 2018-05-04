@@ -1,7 +1,11 @@
+const INFO              = require('./info');
+
 module.exports = (app) => {
 
-  app.get('/', (req, res) => {
-    res.send('Hello world');
+  app.post('/v1/app/login', INFO, (req, res) => {
+
+    return res.send('Hello World');
+    
   });
 
 }
