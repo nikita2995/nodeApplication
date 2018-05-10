@@ -1,3 +1,7 @@
+/*jshint esversion: 6, multistr: true, node: true*/
+
+"use strict";
+
 const crypto                = require('crypto');
 
 module.exports = {

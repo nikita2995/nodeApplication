@@ -1,4 +1,6 @@
-//"use strict"
+/*jshint esversion: 6, multistr: true, node: true*/
+
+"use strict";
 
 const _                       = require('lodash'),
       bodyParser              = require('body-parser'),
