@@ -17,6 +17,13 @@ winston.addColors(winston.config.npm.colors);
 
 module.exports = new winston.Logger({
   transports: [
+    new winston.transports.File({
+      level: 'info',
+      timestamp() {return moment().format('DD-MM-YYYY HH:mm:ss:SSS');},
+      filename: `${logger}/server.log`,
+      handleExceptions: true,
+      json: false,
+    }),
     new winston.transports.Console({
       level: 'debug',
       handleExceptions: true,
@@ -24,12 +31,5 @@ module.exports = new winston.Logger({
       colorize: true,
       timestamp() {return moment().format('DD-MM-YYYY HH:mm:ss:SSS');},
     }),
-    new winston.transports.File({
-      level: 'info',
-      timestamp() {return moment().format('DD-MM-YYYY HH:mm:ss:SSS');},
-      filename: `${logger}/server.log`,
-      handleExceptions: true,
-      json: false,
-    })
   ]
 });

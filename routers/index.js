@@ -2,14 +2,10 @@
 
 "use strict";
 
-const INFO              = require('./info');
+const event              = require('./event');
 
 module.exports = (app) => {
 
-  app.post('/v1/app/login', INFO.info, (req, res) => {
-
-    return res.send('Hello World');
-    
-  });
+  app.post('/v1/app/login', event.info, event.response);
 
 };

@@ -19,5 +19,26 @@ module.exports =  {
     Logger.info('Params: ' + JSON.stringify((method === "POST" || method === "PUT") ? body : query));
     return next();
 
+  },
+
+  response : (req, res, next) => {
+
+    // Check for `error` in request
+    if( _.get(req, ['error', 'status'], false) ) {
+
+      return next();
+
+    }
+
+    let finalResponse = {
+      status : true,
+      message : _.get(req, ['body'], {}),
+      statusCode : 200
+    };
+    
+    Logger.info('Response: ' + JSON.stringify(finalResponse));
+
+    return res.status(200).send(finalResponse);
+    
   }
 };
