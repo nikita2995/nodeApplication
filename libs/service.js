@@ -2,6 +2,7 @@
 
 "use strict";
 
+// NPM Modules
 const crypto                = require('crypto');
 
 module.exports = {

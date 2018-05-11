@@ -2,10 +2,11 @@
 
 "use strict";
 
+// Internal Modules
 const event              = require('./event');
 
 module.exports = (app) => {
 
-  app.post('/v1/app/login', event.info, event.response);
+  app.post('/v1/app/login', event.request, event.response);
 
 };
