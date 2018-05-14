@@ -12,7 +12,8 @@ const _                       = require('lodash'),
       config                  = require('./config'),
       routers                 = require('./routers'),
       util                    = require('./utils'),
-      APPCONST                = util.appConst;
+      APPCONST                = util.appConst,
+      mongodb                 = config.dbConnection;
 
 const app                     = express();
 
@@ -21,6 +22,16 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 //Parsing application/json
 app.use(bodyParser.json());
+
+mongodb.connectToDatabase()
+.then( (err) => {
+
+  if(err)
+    console.log('Database connection failed');
+  else
+    console.log('Database connected');
+
+})
 
 routers(app);
 

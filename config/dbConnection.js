@@ -3,19 +3,32 @@
 "use strict";
 
 // NPM Modules
-const MongoClient             = require('mongodb').MongoClient;
+const MongoClient             = require('mongodb').MongoClient,
+      Q                       = require('q');
 
-let database = null;
-
-MongoClient.connect("mongodb://nikita:root@ds014388.mlab.com:14388/flipkart", function (err, db) {
-   
-    database = db;
-    console.log('Database Connected');
-
-});
+let database;
 
 module.exports = {
 
-    db :database
+  connectToDatabase : () => {
+
+    let deferred = Q.defer();
+
+    MongoClient.connect("mongodb://nikita:root@ds014388.mlab.com:14388/flipkart", function (err, db) {
+   
+      database = db;
+      deferred.resolve(err);
+
+    });
+
+    return deferred.promise;
+
+  },
+  
+  getDB : () => {
+
+    return database;
+
+  }
     
 };

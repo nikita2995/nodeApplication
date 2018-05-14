@@ -7,10 +7,32 @@ const _                     = require('lodash'),
 // Internal Modules
       config                = require('../config'),
       Service               = require('../libs/service'),
+      mongoDB               = config.dbConnection,
       Logger                = config.logger;
 
 module.exports =  {
   
+  register : (req, res, next) => {
+
+    let email             = _.get(req, ['body', 'email'], ''),
+        password          = _.get(req, ['body', 'password'], '');
+
+    mongoDB.getDB().collection('temporary_user').findOne({email: email})
+    .then( result => {
+      if(result) {
+
+      }
+    })
+    // mongoDB.getDB().collection('temporary_user').insertOne({ email: email, password: password })
+    // .then( (result) => {
+
+    // })
+    // .catch;
+
+    return next();
+
+  },
+
   /**
    * `request` is used to log/print API request details.
    * Only details are logged and no additional operation should be performed.
