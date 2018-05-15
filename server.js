@@ -41,27 +41,6 @@ app.post('/sampleGet', (req, res) => {
   console.log('Req Query',req.query);
 
 });
-// Connect to the db
-// MongoClient.connect("mongodb://nikita:root@ds014388.mlab.com:14388/flipkart", function (err, db) {
-   
-// console.log(db);
-//   db.collection('temporary_user', function (err, collection) {
-        
-//     // collection.insert({ id: 1, firstName: 'Steve', lastName: 'Jobs' });
-//     // collection.insert({ id: 2, firstName: 'Bill', lastName: 'Gates' });
-//     // collection.insert({ id: 3, firstName: 'James', lastName: 'Bond' });
-    
-    
-
-//     // db.collection('Persons').count(function (err, count) {
-//     //     if (err) throw err;
-        
-//     //     console.log('Total Rows: ' + count);
-//     // });
-// });
-                
-// });
-
 
 app.get('/sendMail', (req, res) => {
 

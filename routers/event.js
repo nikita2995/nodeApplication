@@ -19,17 +19,51 @@ module.exports =  {
 
     mongoDB.getDB().collection('temporary_user').findOne({email: email})
     .then( result => {
-      if(result) {
+
+      if(!result) {
+
+        Service.sendMail()
+        .then( () => {
+
+          return mongoDB.getDB().collection('temporary_user').insertOne({ email: email, password: password });
+          
+        })
+        .then( (result) => {
+
+          _.set(req, ['body', 'register'], true);
+          return next();
+
+        });
+        
+
+      } else {
+
+        let registerError = {
+          status:                   true,
+          error:                    "User already exist",
+          statusCode:               502
+        };
+
+        // Set `error` in request for `next` function to check.
+        _.set(req, ['error'], registerError);
+        return next();
 
       }
+
     })
-    // mongoDB.getDB().collection('temporary_user').insertOne({ email: email, password: password })
-    // .then( (result) => {
+    .catch( err => {
 
-    // })
-    // .catch;
+      let registerError = {
+        status:                   true,
+        error:                    "Unable to register user",
+        statusCode:               502
+      };
 
-    return next();
+      // Set `error` in request for `next` function to check.
+      _.set(req, ['error'], registerError);
+      return next();
+
+    });
 
   },
 
@@ -74,10 +108,24 @@ module.exports =  {
     Logger.info('Response: ' + JSON.stringify(finalResponse));
 
     // For encrypting the data from server sent as response
-    finalResponse = Service.encrypt(JSON.stringify(finalResponse));
+    //finalResponse = Service.encrypt(JSON.stringify(finalResponse));
 
     return res.status(200).send(finalResponse);
     
   },
+
+  error : (req, res) => {
+
+    let resError = {
+      status:               false,
+      error:                _.get(req, ['error'], {}),
+      statusCode:           _.get(req, ['error', 'statusCode'], 509)
+    };
+  
+    Logger.error("Response: ", JSON.stringify(resError));
+  
+    return res.status(_.get(resError, ['statusCode'], 509)).send(resError);
+
+  }
 
 };
