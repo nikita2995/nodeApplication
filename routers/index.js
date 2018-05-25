@@ -11,4 +11,6 @@ module.exports = (app) => {
 
   app.post('/v1/app/register', event.request, event.register, event.response, event.error);
 
+  app.get('/verifyEmail', event.request, event.verifyEmail, event.response, event.error);
+
 };

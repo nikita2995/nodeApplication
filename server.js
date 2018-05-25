@@ -77,6 +77,6 @@ app.get('/sendMail', (req, res) => {
   });
 });
 
-app.listen(3000, () => {
+app.listen(_.get(APPCONST, ['port'], 0), () => {
   console.log("Listening at port:", _.get(APPCONST, ['port'], 0));
 });

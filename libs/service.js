@@ -3,7 +3,25 @@
 "use strict";
 
 // NPM Modules
-const crypto                = require('crypto');
+const crypto                = require('crypto'),
+      fs                    = require('fs'),
+      Mustache              = require('mustache'),
+      nodemailer            = require('nodemailer'),
+      Q                     = require('q'),
+//Internal NPM
+      config                = require('../config'),
+      utils                 = require('../utils'),
+      APPCONST              = utils.appConst,
+      Logger                = config.logger;
+
+let registerTemplate;
+
+// To send Success Mail for registration
+fs.readFile(__dirname + '/../utils/mailFormat/register.html', 'utf8', (err, data) => {
+  if (err) registerTemplate          = '';
+  else registerTemplate              = data;
+  Mustache.parse(registerTemplate);   // optional, speeds up future uses
+});
 
 module.exports = {
 
@@ -29,7 +47,14 @@ module.exports = {
   
   },
 
-  sendMail : () => {
+  sendMail : (email, event, data) => {
+
+    let deferred          = Q.defer(),
+    html = '';
+
+    if( event === 'REGISTER' ) {
+      html = Mustache.render(registerTemplate, data);
+    }
 
     let transporter = nodemailer.createTransport({
       service:'Gmail',
@@ -38,31 +63,31 @@ module.exports = {
       secure: false,
       host: 'smtp.gmail.com',
       auth: {
-        user: 'nikitakhandelwal2995@gmail.com',
-        pass: 'N!k!ta@2995'
+        user: APPCONST.mailConfig.userName,
+        pass: APPCONST.mailConfig.password
       }
     });
   
     let mailOptions = {
-      from: 'khandelwalnikita02@gmail.com',
-      to: 'khandelwalnikita02@gmail.com',
-      subject: 'Sample',
-      text: 'Sample text',
-      html: '<b> Sample Text </b>'
+      from: APPCONST.mailConfig.userName,
+      to: email,
+      subject: data.subject,
+      html: html
     };
   
     transporter.sendMail(mailOptions, (error, info) => {
+
       if (error) {
-          return console.log(error);
+          Logger.info(error);
+          return deferred.reject(error);
       }
-      console.log('Message sent: %s', info.messageId);
-      // Preview only available when sending through an Ethereal account
-      console.log('Preview URL: %s', nodeMailer.getTestMessageUrl(info));
-  
-      // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
-      // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+      Logger.info('Message sent: %s', info.messageId);
+      Logger.info('Preview mail: %s', JSON.stringify(mailOptions));
+      return deferred.resolve(true);
+
     });
 
+    return deferred.promise;
   },
 
 };

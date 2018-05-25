@@ -12,25 +12,55 @@ const _                     = require('lodash'),
 
 module.exports =  {
   
+  /**
+   * `register` is used by user to register into app.
+   * User is checked, if(!User) Mail is sent, User is added.
+  */
   register : (req, res, next) => {
 
     let email             = _.get(req, ['body', 'email'], ''),
-        password          = _.get(req, ['body', 'password'], '');
+        password          = _.get(req, ['body', 'password'], ''),
+        verificationCode  = Math.random().toString(36).substring(4);
 
     mongoDB.getDB().collection('temporary_user').findOne({email: email})
     .then( result => {
 
       if(!result) {
 
-        Service.sendMail()
+        let 
+          data = {
+            subject : 'Registered Successfully!',
+            verificationCode : verificationCode,
+            email : email
+          };
+        
+        Service.sendMail(email, 'REGISTER', data)
         .then( () => {
 
-          return mongoDB.getDB().collection('temporary_user').insertOne({ email: email, password: password });
-          
+          return mongoDB.getDB().collection('temporary_user')
+          .insertOne({ 
+            email: email, 
+            password: password, 
+            verificationCode: verificationCode 
+          });
+
         })
         .then( (result) => {
 
           _.set(req, ['body', 'register'], true);
+          return next();
+
+        })
+        .catch( err => {
+
+          let registerError = {
+            status:                   true,
+            error:                    "Entered incorrect email",
+            statusCode:               502
+          };
+  
+          // Set `error` in request for `next` function to check.
+          _.set(req, ['error'], registerError);
           return next();
 
         });
