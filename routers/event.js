@@ -160,6 +160,29 @@ module.exports =  {
 
   verifyEmail : (req, res, next) => {
 
+    let query             = _.get(req, ['query'], {}),
+        email             = _.get(query, ['email'], ''),
+        verificationCode  = _.get(query, ['verificationCode'], '');
+
+    let condition = {
+      email: email,
+      verificationCode: verificationCode
+    };
+
+    mongoDB.getDB().collection('temporary_user').findOne(condition)
+    .then( (result) => {
+
+      if(!result) {
+
+      } else {
+        
+      }
+
+    })
+    .catch( (error) => {
+
+    });
+
   }
 
 };
