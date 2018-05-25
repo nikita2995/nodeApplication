@@ -12,6 +12,20 @@ const _                     = require('lodash'),
 
 module.exports =  {
   
+  error : (req, res) => {
+
+    let resError = {
+      status:               false,
+      error:                _.get(req, ['error'], {}),
+      statusCode:           _.get(req, ['error', 'statusCode'], 509)
+    };
+  
+    Logger.error("Response: ", JSON.stringify(resError));
+  
+    return res.status(_.get(resError, ['statusCode'], 509)).send(resError);
+
+  },
+
   /**
    * `register` is used by user to register into app.
    * User is checked, if(!User) Mail is sent, User is added.
@@ -144,17 +158,7 @@ module.exports =  {
     
   },
 
-  error : (req, res) => {
-
-    let resError = {
-      status:               false,
-      error:                _.get(req, ['error'], {}),
-      statusCode:           _.get(req, ['error', 'statusCode'], 509)
-    };
-  
-    Logger.error("Response: ", JSON.stringify(resError));
-  
-    return res.status(_.get(resError, ['statusCode'], 509)).send(resError);
+  verifyEmail : (req, res, next) => {
 
   }
 

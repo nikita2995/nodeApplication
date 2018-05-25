@@ -78,11 +78,11 @@ module.exports = {
     transporter.sendMail(mailOptions, (error, info) => {
 
       if (error) {
-          Logger.info(error);
+
           return deferred.reject(error);
+          
       }
-      Logger.info('Message sent: %s', info.messageId);
-      Logger.info('Preview mail: %s', JSON.stringify(mailOptions));
+      
       return deferred.resolve(true);
 
     });
