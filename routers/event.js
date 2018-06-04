@@ -174,7 +174,20 @@ module.exports =  {
 
       if(!result) {
 
+        mongoDB.getDB().collection('users').insertOne({
+          email: email,
+          password: result.password
+        })
+        .then(() => {
+
+          let html = '<h1>Email Verified</h1><p>Redirecting to login page</p><script>(function(){setTimeout(function(){window.location.href="https://horizon.singularity.exchange/#account";},1000);})();</script>';
+          return res.send(html).end();
+
+        });
       } else {
+        
+        let errorHTML = '<h1>Invalid Request</h1>';
+        return res.send(errorHTML).end();
         
       }
 
