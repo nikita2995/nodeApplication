@@ -3,10 +3,12 @@
 "use strict";
 
 // Internal Modules
-const appConst              = require('./appConst');
+const appConst              = require('./appConst'),
+      schema              = require('./schema');
 
 module.exports = {
 
   appConst: appConst,
+  schema: schema
 
 };

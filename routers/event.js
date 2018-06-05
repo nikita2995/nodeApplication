@@ -6,9 +6,12 @@
 const _                     = require('lodash'),
 // Internal Modules
       config                = require('../config'),
+      Schema                = require('../utils/schema'),
       Service               = require('../libs/service'),
+      Logger                = config.logger,
       mongoDB               = config.dbConnection,
-      Logger                = config.logger;
+      TemporaryUser         = Schema.temporary_user,
+      User                  = Schema.user;
 
 module.exports =  {
   
@@ -36,7 +39,7 @@ module.exports =  {
         password          = _.get(req, ['body', 'password'], ''),
         verificationCode  = Math.random().toString(36).substring(4);
 
-    mongoDB.getDB().collection('temporary_user').findOne({email: email})
+    TemporaryUser.findOne({email: email})
     .then( result => {
 
       if(!result) {
@@ -51,12 +54,12 @@ module.exports =  {
         Service.sendMail(email, 'REGISTER', data)
         .then( () => {
 
-          return mongoDB.getDB().collection('temporary_user')
-          .insertOne({ 
+          let tempUser = new TemporaryUser({
             email: email, 
             password: password, 
             verificationCode: verificationCode 
           });
+          return tempUser.save();
 
         })
         .then( (result) => {
@@ -169,18 +172,20 @@ module.exports =  {
       verificationCode: verificationCode
     };
 
-    mongoDB.getDB().collection('temporary_user').findOne(condition)
+    TemporaryUser.findOne(condition)
     .then( (result) => {
 
-      if(!result) {
+      if(result) {
 
-        mongoDB.getDB().collection('users').insertOne({
+        let user = new User({
           email: email,
-          password: result.password
-        })
+          password: Service.encrypt(result.password)
+        });
+        
+        user.save()
         .then(() => {
 
-          let html = '<h1>Email Verified</h1><p>Redirecting to login page</p><script>(function(){setTimeout(function(){window.location.href="https://horizon.singularity.exchange/#account";},1000);})();</script>';
+          let html = '<h1>Email Verified</h1><p>Redirecting to login page</p><script>(function(){setTimeout(function(){window.location.href="http://localhost:5000";},1000);})();</script>';
           return res.send(html).end();
 
         });
@@ -193,6 +198,9 @@ module.exports =  {
 
     })
     .catch( (error) => {
+
+      let errorHTML = '<h1>Invalid Request</h1>';
+      return res.send(errorHTML).end();
 
     });
 

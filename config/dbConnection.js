@@ -3,8 +3,8 @@
 "use strict";
 
 // NPM Modules
-const MongoClient             = require('mongodb').MongoClient,
-      Q                       = require('q');
+const mongoose             = require('mongoose'),
+      Q                    = require('q');
 
 let database;
 
@@ -14,7 +14,7 @@ module.exports = {
 
     let deferred = Q.defer();
 
-    MongoClient.connect("mongodb://nikita:root@ds014388.mlab.com:14388/flipkart", function (err, db) {
+    mongoose.connect('mongodb://nikita:root@ds014388.mlab.com:14388/flipkart', function (err, db) {
    
       database = db;
       deferred.resolve(err);
