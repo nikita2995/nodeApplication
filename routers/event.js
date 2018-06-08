@@ -33,14 +33,15 @@ module.exports =  {
    * `register` is used by user to register into app.
    * User is checked, if(!User) Mail is sent, User is added.
   */
-  register : (req, res, next) => {
+  register : async (req, res, next) => {
 
-    let email             = _.get(req, ['body', 'email'], ''),
-        password          = _.get(req, ['body', 'password'], ''),
-        verificationCode  = Math.random().toString(36).substring(4);
+    try {
 
-    TemporaryUser.findOne({email: email})
-    .then( result => {
+      let email             = _.get(req, ['body', 'email'], ''),
+          password          = _.get(req, ['body', 'password'], ''),
+          verificationCode  = Math.random().toString(36).substring(4);
+
+      let result = await TemporaryUser.findOne({email: email});
 
       if(!result) {
 
@@ -50,39 +51,20 @@ module.exports =  {
             verificationCode : verificationCode,
             email : email
           };
-        
-        Service.sendMail(email, 'REGISTER', data)
-        .then( () => {
+          
+        await Service.sendMail(email, 'REGISTER', data);
 
-          let tempUser = new TemporaryUser({
-            email: email, 
-            password: password, 
-            verificationCode: verificationCode 
-          });
-          return tempUser.save();
-
-        })
-        .then( (result) => {
-
-          _.set(req, ['body', 'register'], true);
-          return next();
-
-        })
-        .catch( err => {
-
-          let registerError = {
-            status:                   true,
-            error:                    "Entered incorrect email",
-            statusCode:               502
-          };
-  
-          // Set `error` in request for `next` function to check.
-          _.set(req, ['error'], registerError);
-          return next();
-
+        let tempUser = new TemporaryUser({
+          email: email, 
+          password: password, 
+          verificationCode: verificationCode 
         });
-        
 
+        let saveResult = await tempUser.save();
+
+        _.set(req, ['body', 'register'], true);
+        return next();
+          
       } else {
 
         let registerError = {
@@ -97,8 +79,7 @@ module.exports =  {
 
       }
 
-    })
-    .catch( err => {
+    } catch( error ) {
 
       let registerError = {
         status:                   true,
@@ -110,7 +91,7 @@ module.exports =  {
       _.set(req, ['error'], registerError);
       return next();
 
-    });
+    }
 
   },
 
@@ -161,19 +142,20 @@ module.exports =  {
     
   },
 
-  verifyEmail : (req, res, next) => {
+  verifyEmail : async (req, res, next) => {
 
-    let query             = _.get(req, ['query'], {}),
-        email             = _.get(query, ['email'], ''),
-        verificationCode  = _.get(query, ['verificationCode'], '');
+    try {
 
-    let condition = {
-      email: email,
-      verificationCode: verificationCode
-    };
+      let query             = _.get(req, ['query'], {}),
+          email             = _.get(query, ['email'], ''),
+          verificationCode  = _.get(query, ['verificationCode'], '');
 
-    TemporaryUser.findOne(condition)
-    .then( (result) => {
+      let condition = {
+        email: email,
+        verificationCode: verificationCode
+      };
+
+      let result = await TemporaryUser.findOne(condition);
 
       if(result) {
 
@@ -182,13 +164,12 @@ module.exports =  {
           password: Service.encrypt(result.password)
         });
         
-        user.save()
-        .then(() => {
+        let saveResult = await user.save();
 
-          let html = '<h1>Email Verified</h1><p>Redirecting to login page</p><script>(function(){setTimeout(function(){window.location.href="http://localhost:5000";},1000);})();</script>';
-          return res.send(html).end();
+        await TemporaryUser.remove(condition);
+        let html = '<h1>Email Verified</h1><p>Redirecting to login page</p><script>(function(){setTimeout(function(){window.location.href="http://localhost:3001";},1000);})();</script>';
+        return res.send(html).end();
 
-        });
       } else {
         
         let errorHTML = '<h1>Invalid Request</h1>';
@@ -196,13 +177,12 @@ module.exports =  {
         
       }
 
-    })
-    .catch( (error) => {
+    } catch( error ) {
 
       let errorHTML = '<h1>Invalid Request</h1>';
       return res.send(errorHTML).end();
 
-    });
+    }
 
   }
 

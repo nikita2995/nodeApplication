@@ -7,7 +7,6 @@ const crypto                = require('crypto'),
       fs                    = require('fs'),
       Mustache              = require('mustache'),
       nodemailer            = require('nodemailer'),
-      Q                     = require('q'),
 //Internal NPM
       config                = require('../config'),
       utils                 = require('../utils'),
@@ -47,47 +46,45 @@ module.exports = {
   
   },
 
-  sendMail : (email, event, data) => {
+  sendMail : async (email, event, data) => {
 
-    let deferred          = Q.defer(),
-    html = '';
+    try {
 
-    if( event === 'REGISTER' ) {
-      html = Mustache.render(registerTemplate, data);
+      let html = '';
+
+      if( event === 'REGISTER' ) {
+        html = Mustache.render(registerTemplate, data);
+      }
+
+      let transporter = nodemailer.createTransport({
+        service:'Gmail',
+        port: 587,
+        tls:true,
+        secure: false,
+        host: 'smtp.gmail.com',
+        auth: {
+          user: APPCONST.mailConfig.userName,
+          pass: APPCONST.mailConfig.password
+        }
+      });
+    
+      let mailOptions = {
+        from: APPCONST.mailConfig.userName,
+        to: email,
+        subject: data.subject,
+        html: html
+      };
+    
+      let info = await transporter.sendMail(mailOptions);
+
+      return true;
+
+    } catch(error) {
+
+      return error;
+
     }
 
-    let transporter = nodemailer.createTransport({
-      service:'Gmail',
-      port: 587,
-      tls:true,
-      secure: false,
-      host: 'smtp.gmail.com',
-      auth: {
-        user: APPCONST.mailConfig.userName,
-        pass: APPCONST.mailConfig.password
-      }
-    });
-  
-    let mailOptions = {
-      from: APPCONST.mailConfig.userName,
-      to: email,
-      subject: data.subject,
-      html: html
-    };
-  
-    transporter.sendMail(mailOptions, (error, info) => {
-
-      if (error) {
-
-          return deferred.reject(error);
-          
-      }
-      
-      return deferred.resolve(true);
-
-    });
-
-    return deferred.promise;
   },
 
 };
