@@ -4,6 +4,7 @@
 
 // NPM Modules
 const _                     = require('lodash'),
+      dsteem                = require('dsteem'),
 // Internal Modules
       config                = require('../config'),
       Schema                = require('../utils/schema'),
@@ -94,6 +95,99 @@ module.exports =  {
     }
 
   },
+
+  /**
+   * `register` is used by user to register into app.
+   * User is checked, if(!User) Mail is sent, User is added.
+  */
+ sample : async (req, res, next) => {
+
+  try {
+
+    let name             = _.get(req, ['body', 'name'], ''),
+        password         = _.get(req, ['body', 'password'], '');
+
+    let opts = {};
+    //connect to production server
+    opts.addressPrefix = 'TST';
+    opts.chainId =
+        '46d82ab7d8db682eb1959aed0ada039a6d49afa1602491f93dde9cac3e8e6c32';
+
+    const client = new dsteem.Client('https://testnet.steemitdev.com', opts);
+
+    let avail = 'Account is NOT available to register';
+
+    if (name.length > 2) {
+      let _account = await client.database.call('get_accounts', [
+          [name],
+      ]);
+
+      console.log(`_account:`, _account, name.length);
+
+      if (_account.length == 0) {
+          avail = 'Account is available to register';
+      }
+      
+      console.log(avail);
+    }
+
+
+    const ownerKey = dsteem.PrivateKey.fromLogin(name, password, 'owner');
+    const activeKey = dsteem.PrivateKey.fromLogin(name, password, 'active');
+    const postingKey = dsteem.PrivateKey.fromLogin(name, password, 'posting');
+    const memoKey = dsteem.PrivateKey.fromLogin(
+        name,
+        password,
+        'memo'
+    ).createPublic(opts.addressPrefix);
+
+    const ownerAuth = {
+        weight_threshold: 1,
+        account_auths: [],
+        key_auths: [[ownerKey.createPublic(opts.addressPrefix), 1]],
+    };
+    const activeAuth = {
+        weight_threshold: 1,
+        account_auths: [],
+        key_auths: [[activeKey.createPublic(opts.addressPrefix), 1]],
+    };
+    const postingAuth = {
+        weight_threshold: 1,
+        account_auths: [],
+        key_auths: [[postingKey.createPublic(opts.addressPrefix), 1]],
+    };
+
+    const privateKey = dsteem.PrivateKey.fromString(
+        '5Jtbfge4Pk5RyhgzvmZhGE5GeorC1hbaHdwiM7pb5Z5CZz2YKUC'
+    );
+
+    const op = [
+        'account_create',
+        {
+            fee: '3.000 STEEM',
+            creator: 'demo',
+            new_account_name: name,
+            owner: ownerAuth,
+            active: activeAuth,
+            posting: postingAuth,
+            memo_key: memoKey,
+            json_metadata: '',
+        },
+    ];
+
+    let result = await client.broadcast.sendOperations([op], privateKey);
+
+    _.set(req, ['body'], {});
+    _.set(req, ['body', 'blockNumber'], result.block_num);
+    return next();
+
+  } catch(error) {
+
+    console.log(error);
+    return next();
+  }
+
+},
 
   /**
    * `request` is used to log/print API request details.

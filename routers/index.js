@@ -13,4 +13,6 @@ module.exports = (app) => {
 
   app.get('/verifyEmail', event.request, event.verifyEmail, event.response, event.error);
 
+  app.post('/v1/app/sample', event.request, event.sample, event.response, event.error);
+
 };
