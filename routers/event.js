@@ -4,9 +4,13 @@
 
 // NPM Modules
 const _                     = require('lodash'),
-      dsteem                = require('dsteem'),
+      fs                    = require('fs'),
+      jwt                   = require('jsonwebtoken'),
+      steem                 = require('steem'),
 // Internal Modules
+      certificate           = fs.readFileSync( __dirname + '/../libs/certificate', 'utf8'),
       config                = require('../config'),
+      REQUEST               = require('../libs/request'),
       Schema                = require('../utils/schema'),
       Service               = require('../libs/service'),
       Logger                = config.logger,
@@ -107,79 +111,38 @@ module.exports =  {
     let name             = _.get(req, ['body', 'name'], ''),
         password         = _.get(req, ['body', 'password'], '');
 
-    let opts = {};
-    //connect to production server
-    opts.addressPrefix = 'TST';
-    opts.chainId =
-        '46d82ab7d8db682eb1959aed0ada039a6d49afa1602491f93dde9cac3e8e6c32';
+    steem.api.setOptions({
+      url: "htpts://peer.dev.nuvocash.net",
+      address_prefix: "NVO",
+      chain_id: "8f208acdb28adcbe816f754f3c9f9e40096cc12b072f2a038eb9d1331a24e7c6"
+    });
 
-    const client = new dsteem.Client('https://testnet.steemitdev.com', opts);
+    var signup = steem.auth.generateKeys(name, password, ["owner", "active", "posting", "memo"]);
 
-    let avail = 'Account is NOT available to register';
+    console.log(signup);
 
-    if (name.length > 2) {
-      let _account = await client.database.call('get_accounts', [
-          [name],
-      ]);
+    signup['username'] = name;
+    signup['signator'] = 'stellar';
 
-      console.log(`_account:`, _account, name.length);
+    let jwtSigned   = jwt.sign(signup, certificate, {algorithm: 'RS256'});
 
-      if (_account.length == 0) {
-          avail = 'Account is available to register';
+    let reqOps={
+      url:    "https://api.dev.nuvocash.net/accounts/enroll",
+      method: "POST",
+      json: {
+        jwt:                      jwtSigned
       }
-      
-      console.log(avail);
-    }
-
-
-    const ownerKey = dsteem.PrivateKey.fromLogin(name, password, 'owner');
-    const activeKey = dsteem.PrivateKey.fromLogin(name, password, 'active');
-    const postingKey = dsteem.PrivateKey.fromLogin(name, password, 'posting');
-    const memoKey = dsteem.PrivateKey.fromLogin(
-        name,
-        password,
-        'memo'
-    ).createPublic(opts.addressPrefix);
-
-    const ownerAuth = {
-        weight_threshold: 1,
-        account_auths: [],
-        key_auths: [[ownerKey.createPublic(opts.addressPrefix), 1]],
-    };
-    const activeAuth = {
-        weight_threshold: 1,
-        account_auths: [],
-        key_auths: [[activeKey.createPublic(opts.addressPrefix), 1]],
-    };
-    const postingAuth = {
-        weight_threshold: 1,
-        account_auths: [],
-        key_auths: [[postingKey.createPublic(opts.addressPrefix), 1]],
     };
 
-    const privateKey = dsteem.PrivateKey.fromString(
-        '5Jtbfge4Pk5RyhgzvmZhGE5GeorC1hbaHdwiM7pb5Z5CZz2YKUC'
-    );
-
-    const op = [
-        'account_create',
-        {
-            fee: '3.000 STEEM',
-            creator: 'demo',
-            new_account_name: name,
-            owner: ownerAuth,
-            active: activeAuth,
-            posting: postingAuth,
-            memo_key: memoKey,
-            json_metadata: '',
-        },
-    ];
-
-    let result = await client.broadcast.sendOperations([op], privateKey);
-
-    _.set(req, ['body'], {});
-    _.set(req, ['body', 'blockNumber'], result.block_num);
-    return next();
+    console.log(reqOps);
+    REQUEST.makeRequest(reqOps)
+    .then( (result) => {
+      console.log("Result", result);
+      return next();
+    }).catch(error => {
+      console.log("Error", error);
+      return next();
+    })
 
   } catch(error) {
 
