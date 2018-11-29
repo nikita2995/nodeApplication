@@ -19,6 +19,35 @@ const _                     = require('lodash'),
       User                  = Schema.user;
 
 module.exports =  {
+
+  accountDetails: (req, res, next) => {
+
+    try {
+
+      let name             = _.get(req, ['query', 'name'], '');
+  
+      let names = [];
+
+      names.push(name);
+
+      steem.api.setOptions({
+        url: "htpts://peer.dev.nuvocash.net",
+        address_prefix: "NVO",
+        chain_id: "8f208acdb28adcbe816f754f3c9f9e40096cc12b072f2a038eb9d1331a24e7c6"
+      });
+
+      steem.api.getAccounts(names, function(err, result) {
+        console.log(err, result);
+      });
+  
+    } catch(error) {
+  
+      console.log(error);
+      return next();
+
+    }
+
+  },
   
   error : (req, res) => {
 
